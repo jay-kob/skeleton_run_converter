@@ -40,6 +40,8 @@ st.write(
 uploaded_file = st.file_uploader("Choose a PDF file", type="pdf")
 
 if uploaded_file:
+    # Get the original file name without the extension
+    input_filename = uploaded_file.name.rsplit(".", 1)[0]
     # Save the uploaded file to a temporary location
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_pdf:
         temp_pdf.write(uploaded_file.read())
@@ -116,11 +118,11 @@ if uploaded_file:
         df.to_excel(temp_excel.name, index=False)
         excel_path = temp_excel.name
 
-    # Provide a download link for the Excel file
+    # Provide a download link for the Excel file with the same name as the input
     with open(excel_path, "rb") as excel_file:
         st.download_button(
             label="Download Processed Excel File",
             data=excel_file,
-            file_name="processed_athlete_data.xlsx",
+            file_name=f"{input_filename}_processed.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         )
