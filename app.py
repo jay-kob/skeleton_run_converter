@@ -6,8 +6,18 @@ import streamlit as st
 from io import BytesIO
 
 # Helper function to process each athlete's runs
-def process_athlete_runs(data, athlete_info, run_data, race_number):
+def process_athlete_runs(data, athlete_info, run_data, race_counter):
+    athlete_no = athlete_info['No']
+    
+    # Initialize counter for new athletes
+    if athlete_no not in race_counter:
+        race_counter[athlete_no] = 0
+
     for run in run_data:
+        # Increment counter for each individual run
+        race_counter[athlete_no] += 1
+        race_number = race_counter[athlete_no]
+        
         main_times = run[0::2]
         bracket_numbers = run[:-1][1::2]
         combined_run = []
@@ -57,7 +67,7 @@ if uploaded_file:
 
     # Initialize data storage
     data = []
-    athlete_info = {}
+    athlete_info = None  # Changed to None initially
     run_data = []
     race_counter = {}
 
@@ -78,21 +88,17 @@ if uploaded_file:
 
         athlete_match = re.match(athlete_pattern, line)
         if athlete_match:
-            # Process previous athlete's data before starting a new one
+            # Process previous athlete's data if exists
             if athlete_info and run_data:
-                athlete_no = athlete_info['No']
-                if athlete_no not in race_counter:
-                    race_counter[athlete_no] = 1
-                else:
-                    race_counter[athlete_no] += 1
-                process_athlete_runs(data, athlete_info, run_data, race_counter[athlete_no])
+                process_athlete_runs(data, athlete_info, run_data, race_counter)
             
-            # Update athlete_info with new athlete details
+            # Store new athlete info
             athlete_info = {
                 'No': athlete_match.group(1),
                 'Nat': athlete_match.group(2),
                 'Name': athlete_match.group(3).strip()
             }
+            # Clear run data for new athlete
             run_data = []
 
         run_match = re.findall(run_pattern, line)
@@ -101,12 +107,7 @@ if uploaded_file:
 
     # Process the last athlete's data
     if athlete_info and run_data:
-        athlete_no = athlete_info['No']
-        if athlete_no not in race_counter:
-            race_counter[athlete_no] = 1
-        else:
-            race_counter[athlete_no] += 1
-        process_athlete_runs(data, athlete_info, run_data, race_counter[athlete_no])
+        process_athlete_runs(data, athlete_info, run_data, race_counter)
 
     # DataFrame columns
     columns = [
