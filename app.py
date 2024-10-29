@@ -10,8 +10,8 @@ def process_athlete_runs(data, athlete_info, run_data, race_counter):
     athlete_no = athlete_info['No']
     if athlete_no not in race_counter:
         race_counter[athlete_no] = 1
-    else:
-        race_counter[athlete_no] += 1
+    
+    race_counter[athlete_no] += 1
     race_number = race_counter[athlete_no]
 
     for run in run_data:
@@ -120,7 +120,7 @@ if uploaded_file:
     # User selection inputs
     unique_names = df['Name'].unique()
     selected_racer = st.selectbox("Select a racer to focus on:", unique_names)
-    comparison_racers = st.multiselect("Select one or more racers to compare against:", unique_names, default=[selected_racer])
+    comparison_racers = st.multiselect("Select one or more racers to compare against:", unique_names, default=[name for name in unique_names if name != selected_racer])
 
     # Create df_process based on user selections
     df_selected = df[df['Name'].isin([selected_racer] + comparison_racers)]
