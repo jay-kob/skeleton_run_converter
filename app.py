@@ -172,7 +172,7 @@ if uploaded_file is not None:
 
     # Save both DataFrames to Excel
     with tempfile.NamedTemporaryFile(delete=False) as tmp:
-        with pd.ExcelWriter(tmp.name, engine='xlsxwriter') as writer:
+        with pd.ExcelWriter(tmp.name, engine='openpyxl') as writer:
             df.to_excel(writer, sheet_name='Original Data', index=False)
             df_process.to_excel(writer, sheet_name='Processed Data', index=False)
 
