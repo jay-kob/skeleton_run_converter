@@ -87,7 +87,7 @@ if uploaded_file:
         athlete_match = re.match(athlete_pattern, line)
         if athlete_match:
             if athlete_info and run_data:
-                race_counter = process_athlete_runs(data, athlete_info, run_data, race_counter)
+                process_athlete_runs(data, athlete_info, run_data, race_counter)
             
             athlete_info = {
                 'No': athlete_match.group(1),
