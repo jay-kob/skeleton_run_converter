@@ -7,13 +7,6 @@ from io import BytesIO
 
 # Helper function to process each athlete's runs
 def process_athlete_runs(data, athlete_info, run_data, race_number):
-    athlete_key = f"{athlete_info['No']}_{athlete_info['Nat']}_{athlete_info['Name']}"
-    if athlete_key not in race_counter:
-        race_counter[athlete_key] = 1
-    else:
-        race_counter[athlete_key] += 1
-    race_number = race_counter[athlete_key]
-
     for run in run_data:
         main_times = run[0::2]
         bracket_numbers = run[:-1][1::2]
@@ -23,7 +16,6 @@ def process_athlete_runs(data, athlete_info, run_data, race_number):
             combined_run.append(bracket_number)
         combined_run.append(run[-1])
         data.append([athlete_info['No'], athlete_info['Nat'], athlete_info['Name'], race_number] + combined_run)
-    return race_counter
 
 # Calculate split differences for df_process
 def calculate_split_differences(df):
@@ -86,14 +78,16 @@ if uploaded_file:
 
         athlete_match = re.match(athlete_pattern, line)
         if athlete_match:
+            # Process previous athlete's data before starting a new one
             if athlete_info and run_data:
-              athlete_key = f"{athlete_info['No']}_{athlete_info['Nat']}_{athlete_info['Name']}"
-              if athlete_key not in race_counter:
-                  race_counter[athlete_key] = 1
-              else:
-                  race_counter[athlete_key] += 1
-        process_athlete_runs(data, athlete_info, run_data, race_counter[athlete_key])
+                athlete_key = f"{athlete_info['No']}_{athlete_info['Nat']}_{athlete_info['Name']}"
+                if athlete_key not in race_counter:
+                    race_counter[athlete_key] = 1
+                else:
+                    race_counter[athlete_key] += 1
+                process_athlete_runs(data, athlete_info, run_data, race_counter[athlete_key])
             
+            # Update athlete_info with new athlete details
             athlete_info = {
                 'No': athlete_match.group(1),
                 'Nat': athlete_match.group(2),
