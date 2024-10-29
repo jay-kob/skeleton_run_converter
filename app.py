@@ -217,7 +217,7 @@ if uploaded_file:
         fig.update_yaxes(title_text="Time (seconds)", row=2, col=1)
 
         # Display Plotly chart
-        with st.container()
+        with st.container():
             st.plotly_chart(fig, use_container_width=True)
 
         # Calculate split differences for the entire dataset
