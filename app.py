@@ -6,13 +6,7 @@ import streamlit as st
 from io import BytesIO
 
 # Helper function to process each athlete's runs
-def process_athlete_runs(data, athlete_info, run_data, race_counter):
-    athlete_no = athlete_info['No']
-    if athlete_no not in race_counter:
-        race_counter[athlete_no] = 0
-    race_counter[athlete_no] += 1
-    race_number = race_counter[athlete_no]
-
+def process_athlete_runs(data, athlete_info, run_data, race_number):
     for run in run_data:
         main_times = run[0::2]
         bracket_numbers = run[:-1][1::2]
@@ -79,28 +73,40 @@ if uploaded_file:
 
     # Process each line
     for line in text_data.splitlines():
-        print(race_counter)
         if 'DNS' in line:
             continue
 
         athlete_match = re.match(athlete_pattern, line)
         if athlete_match:
+            # Process previous athlete's data before starting a new one
+            if athlete_info and run_data:
+                athlete_no = athlete_info['No']
+                if athlete_no not in race_counter:
+                    race_counter[athlete_no] = 1
+                else:
+                    race_counter[athlete_no] += 1
+                process_athlete_runs(data, athlete_info, run_data, race_counter[athlete_no])
+            
+            # Update athlete_info with new athlete details
             athlete_info = {
                 'No': athlete_match.group(1),
                 'Nat': athlete_match.group(2),
                 'Name': athlete_match.group(3).strip()
             }
-            if athlete_info and run_data:
-                process_athlete_runs(data, athlete_info, run_data, race_counter)
-            
             run_data = []
 
         run_match = re.findall(run_pattern, line)
         if run_match:
             run_data.append(run_match[0])
 
+    # Process the last athlete's data
     if athlete_info and run_data:
-        process_athlete_runs(data, athlete_info, run_data, race_counter)
+        athlete_no = athlete_info['No']
+        if athlete_no not in race_counter:
+            race_counter[athlete_no] = 1
+        else:
+            race_counter[athlete_no] += 1
+        process_athlete_runs(data, athlete_info, run_data, race_counter[athlete_no])
 
     # DataFrame columns
     columns = [
