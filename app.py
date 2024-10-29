@@ -78,6 +78,11 @@ if uploaded_file:
         
         athlete_match = re.match(athlete_pattern, line)
         if athlete_match:
+            athlete_info = {
+                'No': athlete_match.group(1),
+                'Nat': athlete_match.group(2),
+                'Name': athlete_match.group(3).strip()
+            }
             athlete_key = f"{athlete_info['No']}_{athlete_info['Nat']}_{athlete_info['Name']}"
             # Process previous athlete's data before starting a new one
             if athlete_info and run_data:
@@ -85,11 +90,6 @@ if uploaded_file:
                 process_athlete_runs(data, athlete_info, run_data, race_counter[athlete_key])
             
             # Update athlete_info with new athlete details
-            athlete_info = {
-                'No': athlete_match.group(1),
-                'Nat': athlete_match.group(2),
-                'Name': athlete_match.group(3).strip()
-            }
             run_data = []
 
         run_match = re.findall(run_pattern, line)
