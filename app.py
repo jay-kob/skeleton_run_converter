@@ -206,7 +206,7 @@ if uploaded_file:
             width=1400,
             title_text=f"{selected_racer}-{selected_race} vs {comparison_racer}-{selected_comparison_race} - Race Comparison",
             showlegend=True,
-            legend=dict(x=1.05, y=1)  # Move legend to the far right
+            legend=dict(x=1.05, y=1),  # Move legend to the far right
             margin=dict(l=50, r=50, t=50, b=50)
         )
         
