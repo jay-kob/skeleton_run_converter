@@ -54,6 +54,7 @@ def calculate_split_differences(df):
     return pd.DataFrame(df_processed_list, columns=columns)
 
 # Streamlit setup
+st.set_page_config(layout='wide')
 st.title("Single File PDF Processor")
 st.write("Upload a PDF file, and this app will extract and process the data into an Excel file for download.")
 
@@ -202,9 +203,11 @@ if uploaded_file:
         # Update layout for the subplots
         fig.update_layout(
             height=1000,  # Increase vertical size
+            width=1400
             title_text=f"{selected_racer}-{selected_race} vs {comparison_racer}-{selected_comparison_race} - Race Comparison",
             showlegend=True,
             legend=dict(x=1.05, y=1)  # Move legend to the far right
+            margin=dict(l=50, r=50, t=50, b=50)
         )
         
         # Update axes titles separately
@@ -214,7 +217,8 @@ if uploaded_file:
         fig.update_yaxes(title_text="Time (seconds)", row=2, col=1)
 
         # Display Plotly chart
-        st.plotly_chart(fig, use_container_width=True)
+        with st.container()
+            st.plotly_chart(fig, use_container_width=True)
 
         # Calculate split differences for the entire dataset
         df_process = calculate_split_differences(df)
