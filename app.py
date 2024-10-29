@@ -128,6 +128,23 @@ if uploaded_file:
     # Convert to DataFrame
     df = pd.DataFrame(data, columns=columns)
 
+    # Calculate split differences for the entire dataset
+    df_process = calculate_split_differences(df)
+
+    # Save both DataFrames to Excel
+    with tempfile.NamedTemporaryFile(delete=False) as tmp:
+        with pd.ExcelWriter(tmp.name, engine='openpyxl') as writer:
+            df.to_excel(writer, sheet_name='Original Data', index=False)
+            df_process.to_excel(writer, sheet_name='Processed Data', index=False)
+
+        # Download link
+        st.download_button(
+            label="Download Excel file",
+            data=BytesIO(tmp.read()),
+            file_name=f"{input_filename}-Processed.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
     if not df.empty:
         unique_names = df['Name'].unique()
 
@@ -219,20 +236,3 @@ if uploaded_file:
         # Display Plotly chart
         with st.container():
             st.plotly_chart(fig, use_container_width=True)
-
-        # Calculate split differences for the entire dataset
-        df_process = calculate_split_differences(df)
-
-        # Save both DataFrames to Excel
-        with tempfile.NamedTemporaryFile(delete=False) as tmp:
-            with pd.ExcelWriter(tmp.name, engine='openpyxl') as writer:
-                df.to_excel(writer, sheet_name='Original Data', index=False)
-                df_process.to_excel(writer, sheet_name='Processed Data', index=False)
-
-            # Download link
-            st.download_button(
-                label="Download Excel file",
-                data=BytesIO(tmp.read()),
-                file_name="processed_data.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
