@@ -23,8 +23,8 @@ def process_athlete_runs(data, athlete_info, run_data, race_counter):
             combined_run.append(bracket_number)
         combined_run.append(run[-1])
         data.append([athlete_info['No'], athlete_info['Nat'], athlete_info['Name'], race_number] + combined_run)
+    return race_counter
 
-      
 # Calculate split differences for df_process
 def calculate_split_differences(df):
     df_processed_list = []
@@ -87,7 +87,7 @@ if uploaded_file:
         athlete_match = re.match(athlete_pattern, line)
         if athlete_match:
             if athlete_info and run_data:
-                process_athlete_runs(data, athlete_info, run_data, race_counter)
+                race_counter = process_athlete_runs(data, athlete_info, run_data, race_counter)
             
             athlete_info = {
                 'No': athlete_match.group(1),
