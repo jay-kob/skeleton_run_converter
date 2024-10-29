@@ -125,7 +125,7 @@ if uploaded_file:
     # User selection inputs
     unique_names = df['Name'].unique()
     selected_racer = st.selectbox("Select a racer to focus on:", unique_names)
-    comparison_racers = st.multiselect("Select one or more racers to compare against:", unique_names, default=[set(unique_names) - set(selected_racer)])
+    comparison_racers = st.multiselect("Select one or more racers to compare against:", unique_names, default=[list(set(unique_names) - set(selected_racer))])
 
     # Create df_process based on user selections
     df_selected = df[df['Name'].isin([selected_racer] + comparison_racers)]
