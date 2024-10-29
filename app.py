@@ -126,77 +126,80 @@ if uploaded_file:
     # Convert to DataFrame
     df = pd.DataFrame(data, columns=columns)
 
-    # User selection inputs with columns
-    col1, col2 = st.columns(2)
-    with col1:
-        selected_racer = st.selectbox("Select a racer to focus on:", unique_names)
-    with col2:
-        racer_races = df[df['Name'] == selected_racer]['Race'].unique()
-        selected_race = st.selectbox("Select a race for the selected racer:", racer_races)
-    
-    col3, col4 = st.columns(2)
-    with col3:
-        comparison_racer = st.selectbox("Select a racer to compare against:", [name for name in unique_names if name != selected_racer])
-    with col4:
-        comparison_racer_races = df[df['Name'] == comparison_racer]['Race'].unique()
-        selected_comparison_race = st.selectbox("Select a race for the comparison racer:", comparison_racer_races)
+    if not df.empty:
+        unique_names = df['Name'].unique()
 
-    # Filter data for selected pair
-    selected_df = df[(df['Name'] == selected_racer) & (df['Race'] == selected_race)]
-    comparison_df = df[(df['Name'] == comparison_racer) & (df['Race'] == selected_comparison_race)]
+        # User selection inputs with columns
+        col1, col2 = st.columns(2)
+        with col1:
+            selected_racer = st.selectbox("Select a racer to focus on:", unique_names)
+        with col2:
+            racer_races = df[df['Name'] == selected_racer]['Race'].unique()
+            selected_race = st.selectbox("Select a race for the selected racer:", racer_races)
+        
+        col3, col4 = st.columns(2)
+        with col3:
+            comparison_racer = st.selectbox("Select a racer to compare against:", [name for name in unique_names if name != selected_racer])
+        with col4:
+            comparison_racer_races = df[df['Name'] == comparison_racer]['Race'].unique()
+            selected_comparison_race = st.selectbox("Select a race for the comparison racer:", comparison_racer_races)
 
-    # Calculate split differences for selected pair
-    df_pair = pd.concat([selected_df, comparison_df])
-    df_pair_processed = calculate_split_differences(df_pair)
+        # Filter data for selected pair
+        selected_df = df[(df['Name'] == selected_racer) & (df['Race'] == selected_race)]
+        comparison_df = df[(df['Name'] == comparison_racer) & (df['Race'] == selected_comparison_race)]
 
-    # Extract split times for plotting
-    splits = [f'split_{i}' for i in range(6)]
-    selected_splits = df_pair_processed[df_pair_processed['Name'] == selected_racer][splits].values.flatten()
-    comparison_splits = df_pair_processed[df_pair_processed['Name'] == comparison_racer][splits].values.flatten()
+        # Calculate split differences for selected pair
+        df_pair = pd.concat([selected_df, comparison_df])
+        df_pair_processed = calculate_split_differences(df_pair)
 
-    # Calculate percentage differences
-    percentage_diffs = [(selected - comparison) / comparison * 100 if comparison != 0 else 0
-                        for selected, comparison in zip(selected_splits, comparison_splits)]
+        # Extract split times for plotting
+        splits = [f'split_{i}' for i in range(6)]
+        selected_splits = df_pair_processed[df_pair_processed['Name'] == selected_racer][splits].values.flatten()
+        comparison_splits = df_pair_processed[df_pair_processed['Name'] == comparison_racer][splits].values.flatten()
 
-    # Plotly line chart
-    fig = go.Figure()
-    # Add percentage difference bars first
-    fig.add_trace(go.Bar(x=splits, y=percentage_diffs, name='Percentage Difference', yaxis='y2'))
-    # Add lines on top of bars
-    fig.add_trace(go.Scatter(x=splits, y=selected_splits, mode='lines+markers', name=f'{selected_racer} (Race {selected_race})'))
-    fig.add_trace(go.Scatter(x=splits, y=comparison_splits, mode='lines+markers', name=f'{comparison_racer} (Race {selected_comparison_race})'))
-    
-    # Update layout for dual y-axes
-    fig.update_layout(
-        title=f'{selected_racer} vs {comparison_racer} - Race Comparison',
-        xaxis_title='Splits',
-        yaxis_title='Time (seconds)',
-        yaxis2=dict(
-            title='Percentage Difference (%)',
-            overlaying='y',
-            side='right'
-        ),
-        legend=dict(x=1.05, y=1),  # Move legend to the far right
-        height=800,  # Increase vertical size by 50%
-        width=1200  # Increase horizontal size by 75%
-    )
+        # Calculate percentage differences
+        percentage_diffs = [(selected - comparison) / comparison * 100 if comparison != 0 else 0
+                            for selected, comparison in zip(selected_splits, comparison_splits)]
 
-    # Display Plotly chart
-    st.plotly_chart(fig)
-
-    # Calculate split differences for the entire dataset
-    df_process = calculate_split_differences(df)
-
-    # Save both DataFrames to Excel
-    with tempfile.NamedTemporaryFile(delete=False) as tmp:
-        with pd.ExcelWriter(tmp.name, engine='openpyxl') as writer:
-            df.to_excel(writer, sheet_name='Original Data', index=False)
-            df_process.to_excel(writer, sheet_name='Processed Data', index=False)
-
-        # Download link
-        st.download_button(
-            label="Download Excel file",
-            data=BytesIO(tmp.read()),
-            file_name="processed_data.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        # Plotly line chart
+        fig = go.Figure()
+        # Add percentage difference bars first
+        fig.add_trace(go.Bar(x=splits, y=percentage_diffs, name='Percentage Difference', yaxis='y2'))
+        # Add lines on top of bars
+        fig.add_trace(go.Scatter(x=splits, y=selected_splits, mode='lines+markers', name=f'{selected_racer} (Race {selected_race})'))
+        fig.add_trace(go.Scatter(x=splits, y=comparison_splits, mode='lines+markers', name=f'{comparison_racer} (Race {selected_comparison_race})'))
+        
+        # Update layout for dual y-axes
+        fig.update_layout(
+            title=f'{selected_racer} vs {comparison_racer} - Race Comparison',
+            xaxis_title='Splits',
+            yaxis_title='Time (seconds)',
+            yaxis2=dict(
+                title='Percentage Difference (%)',
+                overlaying='y',
+                side='right'
+            ),
+            legend=dict(x=1.05, y=1),  # Move legend to the far right
+            height=800,  # Increase vertical size by 50%
+            width=1200  # Increase horizontal size by 75%
         )
+
+        # Display Plotly chart
+        st.plotly_chart(fig)
+
+        # Calculate split differences for the entire dataset
+        df_process = calculate_split_differences(df)
+
+        # Save both DataFrames to Excel
+        with tempfile.NamedTemporaryFile(delete=False) as tmp:
+            with pd.ExcelWriter(tmp.name, engine='openpyxl') as writer:
+                df.to_excel(writer, sheet_name='Original Data', index=False)
+                df_process.to_excel(writer, sheet_name='Processed Data', index=False)
+
+            # Download link
+            st.download_button(
+                label="Download Excel file",
+                data=BytesIO(tmp.read()),
+                file_name="processed_data.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
