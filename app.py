@@ -203,7 +203,7 @@ if uploaded_file:
         # Update layout for the subplots
         fig.update_layout(
             height=1000,  # Increase vertical size
-            width=1400
+            width=1400,
             title_text=f"{selected_racer}-{selected_race} vs {comparison_racer}-{selected_comparison_race} - Race Comparison",
             showlegend=True,
             legend=dict(x=1.05, y=1)  # Move legend to the far right
