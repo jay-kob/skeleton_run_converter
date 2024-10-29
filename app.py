@@ -6,6 +6,7 @@ import streamlit as st
 from io import BytesIO
 import plotly.graph_objects as go
 
+
 # Helper function to process each athlete's runs
 def process_athlete_runs(data, athlete_info, run_data, race_counter):
     athlete_no = athlete_info['No']
@@ -51,28 +52,36 @@ def calculate_split_differences(df):
     ]
     return pd.DataFrame(df_processed_list, columns=columns)
 
-# Streamlit app
-st.title("PDF to Standardized Excel Converter")
+# Streamlit setup
+st.title("Single File PDF Processor")
+st.write("Upload a PDF file, and this app will extract and process the data into an Excel file for download.")
 
-# File upload
-uploaded_file = st.file_uploader("Upload a PDF file", type="pdf")
+# Single file uploader
+uploaded_file = st.file_uploader("Choose a PDF file", type="pdf", accept_multiple_files=False)
 
-if uploaded_file is not None:
-    # Use pdfplumber to extract text
-    with pdfplumber.open(uploaded_file) as pdf:
+if uploaded_file:
+    input_filename = uploaded_file.name.rsplit('.', 1)[0]
+
+    # Save the uploaded file temporarily
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_pdf:
+        temp_pdf.write(uploaded_file.read())
+        pdf_path = temp_pdf.name
+
+    # Initialize data storage
+    data = []
+    athlete_info = None  # Changed to None initially
+    run_data = []
+    race_counter = {}
+
+    # Regex patterns
+    athlete_pattern = r'(\d+)\s+([A-Z]{3})\s+([A-Za-z\s]+)'
+    run_pattern = r'([\d\.]+)\s+\((\d+)\)\s+([\d\.]+)\s+\((\d+)\)\s+([\d\.]+)\s+\((\d+)\)\s+([\d\.]+)\s+\((\d+)\)\s+([\d\.]+)\s+\((\d+)\)\s+([\d\.]+)\s+\((\d+)\)\s+([\d\.]+)'
+
+    # Extract data from PDF
+    with pdfplumber.open(pdf_path) as pdf:
         text_data = ""
         for page in pdf.pages:
             text_data += page.extract_text()
-
-    # Define regex patterns for parsing athlete and run data
-    athlete_pattern = r"(\d+)\s+([A-Z]{3})\s+(.+?)\s+\d{2}:\d{2}\.\d{2}"
-    run_pattern = r"\d{2}:\d{2}\.\d{2}\s*\(\d+\)"
-
-    # Initialize variables for storing data
-    data = []
-    athlete_info = {}
-    run_data = []
-    race_counter = {}
 
     # Process each line
     for line in text_data.splitlines():
