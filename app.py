@@ -87,11 +87,11 @@ if uploaded_file:
         athlete_match = re.match(athlete_pattern, line)
         if athlete_match:
             if athlete_info and run_data:
-        athlete_key = f"{athlete_info['No']}_{athlete_info['Nat']}_{athlete_info['Name']}"
-        if athlete_key not in race_counter:
-            race_counter[athlete_key] = 1
-        else:
-            race_counter[athlete_key] += 1
+              athlete_key = f"{athlete_info['No']}_{athlete_info['Nat']}_{athlete_info['Name']}"
+              if athlete_key not in race_counter:
+                  race_counter[athlete_key] = 1
+              else:
+                  race_counter[athlete_key] += 1
         process_athlete_runs(data, athlete_info, run_data, race_counter[athlete_key])
             
             athlete_info = {
