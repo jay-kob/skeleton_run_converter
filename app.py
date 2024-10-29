@@ -85,7 +85,7 @@ if uploaded_file:
 
         athlete_match = re.match(athlete_pattern, line)
         if athlete_match:
-          athlete_info = {
+            athlete_info = {
                 'No': athlete_match.group(1),
                 'Nat': athlete_match.group(2),
                 'Name': athlete_match.group(3).strip()
