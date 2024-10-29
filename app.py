@@ -75,12 +75,12 @@ if uploaded_file:
     for line in text_data.splitlines():
         if 'DNS' in line:
             continue
-
+        
         athlete_match = re.match(athlete_pattern, line)
         if athlete_match:
+            athlete_key = f"{athlete_info['No']}_{athlete_info['Nat']}_{athlete_info['Name']}"
             # Process previous athlete's data before starting a new one
             if athlete_info and run_data:
-                athlete_key = f"{athlete_info['No']}_{athlete_info['Nat']}_{athlete_info['Name']}"
                 race_counter[athlete_key] = race_counter.get(athlete_key, 0) + 1
                 process_athlete_runs(data, athlete_info, run_data, race_counter[athlete_key])
             
@@ -98,7 +98,6 @@ if uploaded_file:
 
     # Process the last athlete's data
     if athlete_info and run_data:
-        athlete_key = f"{athlete_info['No']}_{athlete_info['Nat']}_{athlete_info['Name']}"
         race_counter[athlete_key] = race_counter.get(athlete_key, 0) + 1
         process_athlete_runs(data, athlete_info, run_data, race_counter[athlete_key])
 
