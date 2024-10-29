@@ -126,14 +126,20 @@ if uploaded_file:
     # Convert to DataFrame
     df = pd.DataFrame(data, columns=columns)
 
-    # User selection inputs
-    unique_names = df['Name'].unique()
-    selected_racer = st.selectbox("Select a racer to focus on:", unique_names)
-    racer_races = df[df['Name'] == selected_racer]['Race'].unique()
-    selected_race = st.selectbox("Select a race for the selected racer:", racer_races)
-    comparison_racer = st.selectbox("Select a racer to compare against:", [name for name in unique_names if name != selected_racer])
-    comparison_racer_races = df[df['Name'] == comparison_racer]['Race'].unique()
-    selected_comparison_race = st.selectbox("Select a race for the comparison racer:", comparison_racer_races)
+    # User selection inputs with columns
+    col1, col2 = st.columns(2)
+    with col1:
+        selected_racer = st.selectbox("Select a racer to focus on:", unique_names)
+    with col2:
+        racer_races = df[df['Name'] == selected_racer]['Race'].unique()
+        selected_race = st.selectbox("Select a race for the selected racer:", racer_races)
+    
+    col3, col4 = st.columns(2)
+    with col3:
+        comparison_racer = st.selectbox("Select a racer to compare against:", [name for name in unique_names if name != selected_racer])
+    with col4:
+        comparison_racer_races = df[df['Name'] == comparison_racer]['Race'].unique()
+        selected_comparison_race = st.selectbox("Select a race for the comparison racer:", comparison_racer_races)
 
     # Filter data for selected pair
     selected_df = df[(df['Name'] == selected_racer) & (df['Race'] == selected_race)]
@@ -154,12 +160,12 @@ if uploaded_file:
 
     # Plotly line chart
     fig = go.Figure()
+    # Add percentage difference bars first
+    fig.add_trace(go.Bar(x=splits, y=percentage_diffs, name='Percentage Difference', yaxis='y2'))
+    # Add lines on top of bars
     fig.add_trace(go.Scatter(x=splits, y=selected_splits, mode='lines+markers', name=f'{selected_racer} (Race {selected_race})'))
     fig.add_trace(go.Scatter(x=splits, y=comparison_splits, mode='lines+markers', name=f'{comparison_racer} (Race {selected_comparison_race})'))
     
-    # Add percentage difference bars
-    fig.add_trace(go.Bar(x=splits, y=percentage_diffs, name='Percentage Difference', yaxis='y2'))
-
     # Update layout for dual y-axes
     fig.update_layout(
         title=f'{selected_racer} vs {comparison_racer} - Race Comparison',
@@ -170,7 +176,9 @@ if uploaded_file:
             overlaying='y',
             side='right'
         ),
-        legend=dict(x=0.01, y=0.99)
+        legend=dict(x=1.05, y=1),  # Move legend to the far right
+        height=800,  # Increase vertical size by 50%
+        width=1200  # Increase horizontal size by 75%
     )
 
     # Display Plotly chart
