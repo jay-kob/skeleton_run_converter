@@ -166,22 +166,36 @@ if uploaded_file:
         bar_colors = ['green' if diff < 0 else 'red' for diff in percentage_diffs]
 
         # Create subplots for separate line and bar charts
-        fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.1,
+        fig = make_subplots(rows=2, cols=1, 
+                            shared_xaxes=True, 
+                            vertical_spacing=0.1,
                             subplot_titles=("Percentage Difference", f"{selected_racer} vs {comparison_racer} - Race Comparison"))
-
+        
         # Add bar chart for percentage differences
         fig.add_trace(
-            go.Bar(x=splits, y=percentage_diffs, name='Percentage Difference', marker_color=bar_colors),
+            go.Bar(x=splits, 
+                   y=percentage_diffs, 
+                   name='Percentage Difference', 
+                   marker_color=bar_colors),
             row=1, col=1
         )
-
+        
         # Add line charts for selected and comparison racers
         fig.add_trace(
-            go.Scatter(x=splits, y=selected_splits, mode='lines+markers', name=f'{selected_racer} (Race {selected_race})', line=dict(color='yellow')),
+            go.Scatter(x=splits, 
+                       y=selected_splits, 
+                       mode='lines+markers', 
+                       name=f'{selected_racer} (Race {selected_race})', 
+                       line=dict(color='yellow')),
             row=2, col=1
         )
+        
         fig.add_trace(
-            go.Scatter(x=splits, y=comparison_splits, mode='lines+markers', name=f'{comparison_racer} (Race {selected_comparison_race})', line=dict(color='blue')),
+            go.Scatter(x=splits, 
+                       y=comparison_splits, 
+                       mode='lines+markers', 
+                       name=f'{comparison_racer} (Race {selected_comparison_race})', 
+                       line=dict(color='blue')),
             row=2, col=1
         )
         
@@ -189,11 +203,15 @@ if uploaded_file:
         fig.update_layout(
             height=1000,  # Increase vertical size
             title_text=f"{selected_racer}-{selected_race} vs {comparison_racer}-{selected_comparison_race} - Race Comparison",
-            xaxis_title='Splits',
-            yaxis=dict(title='Percentage Difference (%)', row=1, col=1),
-            yaxis2=dict(title='Time (seconds)', row=2, col=1),
+            showlegend=True,
             legend=dict(x=1.05, y=1)  # Move legend to the far right
         )
+        
+        # Update axes titles separately
+        fig.update_xaxes(title_text="Splits", row=1, col=1)
+        fig.update_xaxes(title_text="Splits", row=2, col=1)
+        fig.update_yaxes(title_text="Percentage Difference (%)", row=1, col=1)
+        fig.update_yaxes(title_text="Time (seconds)", row=2, col=1)
 
         # Display Plotly chart
         st.plotly_chart(fig, use_container_width=True)
