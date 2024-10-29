@@ -5,6 +5,7 @@ import tempfile
 import streamlit as st
 from io import BytesIO
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 
 # Helper function to process each athlete's runs
