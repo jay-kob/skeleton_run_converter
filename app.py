@@ -7,7 +7,7 @@ from io import BytesIO
 
 # Helper function to process each athlete's runs
 def process_athlete_runs(data, athlete_info, run_data, race_counter):
-    athlete_no = athlete_info['Name']
+    athlete_no = f"{athlete_info['No']}_{athlete_info['Nat']}_{athlete_info['Name']}"
     if athlete_no not in race_counter:
         race_counter[athlete_no] = 1
     else:
