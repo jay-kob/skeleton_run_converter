@@ -7,7 +7,7 @@ from io import BytesIO
 
 # Helper function to process each athlete's runs
 def process_athlete_runs(data, athlete_info, run_data, race_counter):
-    athlete_no = athlete_info['No']
+    athlete_no = athlete_info['Name']
     if athlete_no not in race_counter:
         race_counter[athlete_no] = 1
     else:
@@ -23,8 +23,8 @@ def process_athlete_runs(data, athlete_info, run_data, race_counter):
             combined_run.append(bracket_number)
         combined_run.append(run[-1])
         data.append([athlete_info['No'], athlete_info['Nat'], athlete_info['Name'], race_number] + combined_run)
-    return race_counter
 
+      
 # Calculate split differences for df_process
 def calculate_split_differences(df):
     df_processed_list = []
