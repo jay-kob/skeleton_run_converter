@@ -81,10 +81,7 @@ if uploaded_file:
             # Process previous athlete's data before starting a new one
             if athlete_info and run_data:
                 athlete_key = f"{athlete_info['No']}_{athlete_info['Nat']}_{athlete_info['Name']}"
-                if athlete_key not in race_counter:
-                    race_counter[athlete_key] = 1
-                else:
-                    race_counter[athlete_key] += 1
+                race_counter[athlete_key] = race_counter.get(athlete_key, 0) + 1
                 process_athlete_runs(data, athlete_info, run_data, race_counter[athlete_key])
             
             # Update athlete_info with new athlete details
@@ -99,12 +96,10 @@ if uploaded_file:
         if run_match:
             run_data.append(run_match[0])
 
+    # Process the last athlete's data
     if athlete_info and run_data:
         athlete_key = f"{athlete_info['No']}_{athlete_info['Nat']}_{athlete_info['Name']}"
-        if athlete_key not in race_counter:
-            race_counter[athlete_key] = 1
-        else:
-            race_counter[athlete_key] += 1
+        race_counter[athlete_key] = race_counter.get(athlete_key, 0) + 1
         process_athlete_runs(data, athlete_info, run_data, race_counter[athlete_key])
 
     # DataFrame columns
