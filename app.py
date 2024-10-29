@@ -4,6 +4,7 @@ import pdfplumber
 import tempfile
 import streamlit as st
 from io import BytesIO
+import plotly.graph_objects as go
 
 # Helper function to process each athlete's runs
 def process_athlete_runs(data, athlete_info, run_data, race_counter):
@@ -50,36 +51,28 @@ def calculate_split_differences(df):
     ]
     return pd.DataFrame(df_processed_list, columns=columns)
 
-# Streamlit setup
-st.title("Single File PDF Processor")
-st.write("Upload a PDF file, and this app will extract and process the data into an Excel file for download.")
+# Streamlit app
+st.title("PDF to Standardized Excel Converter")
 
-# Single file uploader
-uploaded_file = st.file_uploader("Choose a PDF file", type="pdf", accept_multiple_files=False)
+# File upload
+uploaded_file = st.file_uploader("Upload a PDF file", type="pdf")
 
-if uploaded_file:
-    input_filename = uploaded_file.name.rsplit('.', 1)[0]
-
-    # Save the uploaded file temporarily
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_pdf:
-        temp_pdf.write(uploaded_file.read())
-        pdf_path = temp_pdf.name
-
-    # Initialize data storage
-    data = []
-    athlete_info = None  # Changed to None initially
-    run_data = []
-    race_counter = {}
-
-    # Regex patterns
-    athlete_pattern = r'(\d+)\s+([A-Z]{3})\s+([A-Za-z\s]+)'
-    run_pattern = r'([\d\.]+)\s+\((\d+)\)\s+([\d\.]+)\s+\((\d+)\)\s+([\d\.]+)\s+\((\d+)\)\s+([\d\.]+)\s+\((\d+)\)\s+([\d\.]+)\s+\((\d+)\)\s+([\d\.]+)\s+\((\d+)\)\s+([\d\.]+)'
-
-    # Extract data from PDF
-    with pdfplumber.open(pdf_path) as pdf:
+if uploaded_file is not None:
+    # Use pdfplumber to extract text
+    with pdfplumber.open(uploaded_file) as pdf:
         text_data = ""
         for page in pdf.pages:
             text_data += page.extract_text()
+
+    # Define regex patterns for parsing athlete and run data
+    athlete_pattern = r"(\d+)\s+([A-Z]{3})\s+(.+?)\s+\d{2}:\d{2}\.\d{2}"
+    run_pattern = r"\d{2}:\d{2}\.\d{2}\s*\(\d+\)"
+
+    # Initialize variables for storing data
+    data = []
+    athlete_info = {}
+    run_data = []
+    race_counter = {}
 
     # Process each line
     for line in text_data.splitlines():
@@ -127,23 +120,66 @@ if uploaded_file:
     # User selection inputs
     unique_names = df['Name'].unique()
     selected_racer = st.selectbox("Select a racer to focus on:", unique_names)
-    comparison_racers = st.multiselect("Select one or more racers to compare against:", unique_names, default=[name for name in unique_names if name != selected_racer])
+    racer_races = df[df['Name'] == selected_racer]['Race'].unique()
+    selected_race = st.selectbox("Select a race for the selected racer:", racer_races)
+    comparison_racer = st.selectbox("Select a racer to compare against:", [name for name in unique_names if name != selected_racer])
+    comparison_racer_races = df[df['Name'] == comparison_racer]['Race'].unique()
+    selected_comparison_race = st.selectbox("Select a race for the comparison racer:", comparison_racer_races)
 
-    # Create df_process based on user selections
-    df_selected = df[df['Name'].isin([selected_racer] + comparison_racers)]
-    df_process = calculate_split_differences(df_selected)
+    # Filter data for selected pair
+    selected_df = df[(df['Name'] == selected_racer) & (df['Race'] == selected_race)]
+    comparison_df = df[(df['Name'] == comparison_racer) & (df['Race'] == selected_comparison_race)]
 
-    # Save both DataFrames to an Excel file with two sheets
-    excel_data = BytesIO()
-    with pd.ExcelWriter(excel_data, engine="openpyxl") as writer:
-        df.to_excel(writer, sheet_name="raw", index=False)
-        df_process.to_excel(writer, sheet_name="processed", index=False)
-    excel_data.seek(0)
+    # Calculate split differences for selected pair
+    df_pair = pd.concat([selected_df, comparison_df])
+    df_pair_processed = calculate_split_differences(df_pair)
 
-    # Download button for the processed file
-    st.download_button(
-        label="Download Processed Excel File",
-        data=excel_data,
-        file_name=f"{input_filename}_processed.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    # Extract split times for plotting
+    splits = [f'split_{i}' for i in range(6)]
+    selected_splits = df_pair_processed[df_pair_processed['Name'] == selected_racer][splits].values.flatten()
+    comparison_splits = df_pair_processed[df_pair_processed['Name'] == comparison_racer][splits].values.flatten()
+
+    # Calculate percentage differences
+    percentage_diffs = [(selected - comparison) / comparison * 100 if comparison != 0 else 0
+                        for selected, comparison in zip(selected_splits, comparison_splits)]
+
+    # Plotly line chart
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=splits, y=selected_splits, mode='lines+markers', name=f'{selected_racer} (Race {selected_race})'))
+    fig.add_trace(go.Scatter(x=splits, y=comparison_splits, mode='lines+markers', name=f'{comparison_racer} (Race {selected_comparison_race})'))
+    
+    # Add percentage difference bars
+    fig.add_trace(go.Bar(x=splits, y=percentage_diffs, name='Percentage Difference', yaxis='y2'))
+
+    # Update layout for dual y-axes
+    fig.update_layout(
+        title=f'{selected_racer} vs {comparison_racer} - Race Comparison',
+        xaxis_title='Splits',
+        yaxis_title='Time (seconds)',
+        yaxis2=dict(
+            title='Percentage Difference (%)',
+            overlaying='y',
+            side='right'
+        ),
+        legend=dict(x=0.01, y=0.99)
     )
+
+    # Display Plotly chart
+    st.plotly_chart(fig)
+
+    # Calculate split differences for the entire dataset
+    df_process = calculate_split_differences(df)
+
+    # Save both DataFrames to Excel
+    with tempfile.NamedTemporaryFile(delete=False) as tmp:
+        with pd.ExcelWriter(tmp.name, engine='xlsxwriter') as writer:
+            df.to_excel(writer, sheet_name='Original Data', index=False)
+            df_process.to_excel(writer, sheet_name='Processed Data', index=False)
+
+        # Download link
+        st.download_button(
+            label="Download Excel file",
+            data=BytesIO(tmp.read()),
+            file_name="processed_data.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
