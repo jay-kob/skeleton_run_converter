@@ -188,7 +188,7 @@ if uploaded_file:
         # Update layout for the subplots
         fig.update_layout(
             height=1000,  # Increase vertical size
-            title_text=f"{selected_racer}-{selected_race} vs {comparison_racer}-{comparison_race} - Race Comparison",
+            title_text=f"{selected_racer}-{selected_race} vs {comparison_racer}-{selected_comparison_race} - Race Comparison",
             xaxis_title='Splits',
             yaxis=dict(title='Percentage Difference (%)', row=1, col=1),
             yaxis2=dict(title='Time (seconds)', row=2, col=1),
