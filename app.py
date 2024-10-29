@@ -7,12 +7,16 @@ from io import BytesIO
 
 # Helper function to process each athlete's runs
 def process_athlete_runs(data, athlete_info, run_data, race_counter):
+    print(race_counter)
     athlete_no = athlete_info['No']
     if athlete_no not in race_counter:
         race_counter[athlete_no] = 1
+        print("Adding new racer no", athlete_no)
     else:
         race_counter[athlete_no] += 1
+        print("Incrementing existing racer no", athlete_no)
     race_number = race_counter[athlete_no]
+    print(race_number)
 
     for run in run_data:
         main_times = run[0::2]
@@ -80,6 +84,7 @@ if uploaded_file:
 
     # Process each line
     for line in text_data.splitlines():
+        print(race_counter)
         if 'DNS' in line:
             continue
 
@@ -120,7 +125,7 @@ if uploaded_file:
     # User selection inputs
     unique_names = df['Name'].unique()
     selected_racer = st.selectbox("Select a racer to focus on:", unique_names)
-    comparison_racers = st.multiselect("Select one or more racers to compare against:", unique_names, default=[selected_racer])
+    comparison_racers = st.multiselect("Select one or more racers to compare against:", unique_names, default=[set(unique_names) - set(selected_racer)])
 
     # Create df_process based on user selections
     df_selected = df[df['Name'].isin([selected_racer] + comparison_racers)]
