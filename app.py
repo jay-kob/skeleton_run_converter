@@ -6,7 +6,7 @@ import streamlit as st
 from io import BytesIO
 
 # Helper function to process each athlete's runs
-def process_athlete_runs(data, athlete_info, run_data, race_counter):
+def process_athlete_runs(data, athlete_info, run_data, race_number):
     athlete_key = f"{athlete_info['No']}_{athlete_info['Nat']}_{athlete_info['Name']}"
     if athlete_key not in race_counter:
         race_counter[athlete_key] = 1
@@ -87,7 +87,12 @@ if uploaded_file:
         athlete_match = re.match(athlete_pattern, line)
         if athlete_match:
             if athlete_info and run_data:
-                race_counter = process_athlete_runs(data, athlete_info, run_data, race_counter)
+        athlete_key = f"{athlete_info['No']}_{athlete_info['Nat']}_{athlete_info['Name']}"
+        if athlete_key not in race_counter:
+            race_counter[athlete_key] = 1
+        else:
+            race_counter[athlete_key] += 1
+        process_athlete_runs(data, athlete_info, run_data, race_counter[athlete_key])
             
             athlete_info = {
                 'No': athlete_match.group(1),
@@ -101,7 +106,12 @@ if uploaded_file:
             run_data.append(run_match[0])
 
     if athlete_info and run_data:
-        process_athlete_runs(data, athlete_info, run_data, race_counter)
+        athlete_key = f"{athlete_info['No']}_{athlete_info['Nat']}_{athlete_info['Name']}"
+        if athlete_key not in race_counter:
+            race_counter[athlete_key] = 1
+        else:
+            race_counter[athlete_key] += 1
+        process_athlete_runs(data, athlete_info, run_data, race_counter[athlete_key])
 
     # DataFrame columns
     columns = [
