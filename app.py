@@ -76,8 +76,14 @@ if uploaded_file:
     race_counter = {}
 
     # Regex patterns
-    athlete_pattern = r'(\d+)\s+([A-Z]{3})\s+([A-Za-z\s]+)'
+    # Updated regex patterns
+    athlete_pattern = r'(\d+)\s+([A-Z]{3})?\s*([A-Za-z\s\(\)]+)'  # "NAT" column is now optional with the `?`
     run_pattern = r'([\d\.]+)\s+\((\d+)\)\s+([\d\.]+)\s+\((\d+)\)\s+([\d\.]+)\s+\((\d+)\)\s+([\d\.]+)\s+\((\d+)\)\s+([\d\.]+)\s+\((\d+)\)\s+([\d\.]+)\s+\((\d+)\)\s+([\d\.]+)'
+    
+    # Explanation:
+    # - The `([A-Z]{3})?` part makes the "NAT" column optional.
+    # - `\s*` allows for extra space after the optional "NAT" column.
+
 
     # Extract data from PDF
     with pdfplumber.open(pdf_path) as pdf:
