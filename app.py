@@ -8,6 +8,17 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 
+# If a time goes over 60 seconds we start getting MM:SS:MS formats that we need to be numeric
+# Helper function to convert time to seconds
+def time_to_seconds(time_str):
+    if ":" in time_str:
+        # Handle minute:second.millisecond format
+        minutes, seconds = time_str.split(":")
+        return int(minutes) * 60 + float(seconds)
+    else:
+        # Handle second.millisecond format
+        return float(time_str)
+
 # Helper function to process each athlete's runs
 def process_athlete_runs(data, athlete_info, run_data, race_counter):
     athlete_no = athlete_info['No']
@@ -77,7 +88,8 @@ if uploaded_file:
 
     # Regex patterns
     athlete_pattern = r'(\d+)\s+([A-Z]{3})\s+([A-Za-z\s]+)'
-    run_pattern = r'([\d\.]+)\s+\((\d+)\)\s+([\d\.]+)\s+\((\d+)\)\s+([\d\.]+)\s+\((\d+)\)\s+([\d\.]+)\s+\((\d+)\)\s+([\d\.]+)\s+\((\d+)\)\s+([\d\.]+)\s+\((\d+)\)\s+([\d\.]+)'
+    run_pattern = r'([\d:]+\.\d+)\s+\((\d+)\)\s+([\d:]+\.\d+)\s+\((\d+)\)\s+([\d:]+\.\d+)\s+\((\d+)\)\s+([\d:]+\.\d+)\s+\((\d+)\)\s+([\d:]+\.\d+)\s+\((\d+)\)\s+([\d:]+\.\d+)\s+\((\d+)\)\s+([\d:]+\.\d+)'
+
 
     # Extract data from PDF
     with pdfplumber.open(pdf_path) as pdf:
@@ -127,6 +139,10 @@ if uploaded_file:
 
     # Convert to DataFrame
     df = pd.DataFrame(data, columns=columns)
+
+    # Normalize time columns to seconds
+    for col in ["split_1", "split_2", "split_3", "split_4", "split_5", "finish_time"]:
+        df[col] = df[col].apply(time_to_seconds)
 
     # Calculate split differences for the entire dataset
     df_process = calculate_split_differences(df)
