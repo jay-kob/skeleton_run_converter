@@ -183,18 +183,26 @@ if uploaded_file:
         selected_df = df[(df['Name'] == selected_racer) & (df['Race'] == selected_race)]
         comparison_df = df[(df['Name'] == comparison_racer) & (df['Race'] == selected_comparison_race)]
 
-        # Calculate split differences for selected pair
-        df_pair = pd.concat([selected_df, comparison_df])
-        df_pair_processed = calculate_split_differences(df_pair)
+        # Calculate split differences for individual races
+        selected_df_processed = calculate_split_differences(selected_df)
+        comparison_df_processed = calculate_split_differences(comparison_df)
 
-        # Extract split times for plotting
-        splits = [f'split_{i}' for i in range(6)]
-        selected_splits = df_pair_processed[(df_pair_processed['Name'] == selected_racer) & (df_pair_processed['Race'] == selected_race)][splits].values.flatten()
-        comparison_splits = df_pair_processed[(df_pair_processed['Name'] == comparison_racer) & (df_pair_processed['Race'] == selected_comparison_race)][splits].values.flatten()
+        # Extract split differences (time between splits) for bar chart
+        split_diff_cols = [f'split_{i}' for i in range(6)] # These are the calculated differences
+        selected_split_diffs = selected_df_processed[split_diff_cols].values.flatten()
+        comparison_split_diffs = comparison_df_processed[split_diff_cols].values.flatten()
 
-        # Calculate percentage differences
+        # Extract cumulative split times for line chart
+        cumulative_split_cols = [f'split_{i}' for i in range(1, 6)] + ['finish_time']
+        selected_cumulative_splits = [0] + selected_df[cumulative_split_cols].values.flatten().tolist()
+        comparison_cumulative_splits = [0] + comparison_df[cumulative_split_cols].values.flatten().tolist()
+
+        # Calculate percentage differences using split differences
         percentage_diffs = [(selected - comparison) / comparison * 100 if comparison != 0 else 0
-                            for selected, comparison in zip(selected_splits, comparison_splits)]
+                            for selected, comparison in zip(selected_split_diffs, comparison_split_diffs)]
+
+        # Define splits for plotting (including split_0)
+        splits = [f'split_{i}' for i in range(6)]
 
                 # Define bar colors based on percentage difference
         bar_colors = ['green' if diff < 0 else 'red' for diff in percentage_diffs]
@@ -216,19 +224,19 @@ if uploaded_file:
         
         # Add line charts for selected and comparison racers
         fig.add_trace(
-            go.Scatter(x=splits, 
-                       y=selected_splits, 
-                       mode='lines+markers', 
-                       name=f'{selected_racer} (Race {selected_race})', 
+            go.Scatter(x=splits,
+                       y=selected_cumulative_splits,
+                       mode='lines+markers',
+                       name=f'{selected_racer} (Race {selected_race})',
                        line=dict(color='yellow')),
             row=2, col=1
         )
-        
+
         fig.add_trace(
-            go.Scatter(x=splits, 
-                       y=comparison_splits, 
-                       mode='lines+markers', 
-                       name=f'{comparison_racer} (Race {selected_comparison_race})', 
+            go.Scatter(x=splits,
+                       y=comparison_cumulative_splits,
+                       mode='lines+markers',
+                       name=f'{comparison_racer} (Race {selected_comparison_race})',
                        line=dict(color='blue')),
             row=2, col=1
         )
