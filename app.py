@@ -174,7 +174,7 @@ if uploaded_file:
         
         col3, col4 = st.columns(2)
         with col3:
-            comparison_racer = st.selectbox("Select a racer to compare against:", [name for name in unique_names if name != selected_racer])
+            comparison_racer = st.selectbox("Select a racer to compare against:", unique_names)
         with col4:
             comparison_racer_races = df[df['Name'] == comparison_racer]['Race'].unique()
             selected_comparison_race = st.selectbox("Select a race for the comparison racer:", comparison_racer_races)
