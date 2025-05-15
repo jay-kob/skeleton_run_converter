@@ -189,8 +189,8 @@ if uploaded_file:
 
         # Extract split times for plotting
         splits = [f'split_{i}' for i in range(6)]
-        selected_splits = df_pair_processed[df_pair_processed['Name'] == selected_racer][splits].values.flatten()
-        comparison_splits = df_pair_processed[df_pair_processed['Name'] == comparison_racer][splits].values.flatten()
+        selected_splits = df_pair_processed[(df_pair_processed['Name'] == selected_racer) & (df_pair_processed['Race'] == selected_race)][splits].values.flatten()
+        comparison_splits = df_pair_processed[(df_pair_processed['Name'] == comparison_racer) & (df_pair_processed['Race'] == selected_comparison_race)][splits].values.flatten()
 
         # Calculate percentage differences
         percentage_diffs = [(selected - comparison) / comparison * 100 if comparison != 0 else 0
